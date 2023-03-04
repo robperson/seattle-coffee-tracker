@@ -1,9 +1,9 @@
-type Coordinates = {
-    latitude: number
+export type Coordinates = {
     longitude: number
+    latitude: number
 }
 
-type Shop = {
+export type Shop = {
     id: string
     name: string
     imageURL: string
@@ -15,8 +15,8 @@ type Shop = {
     phone: string
 }
 
-export default async function fetchCoffeeShops(): Promise<Shop[]> {
-    const uri: string = 'https://api.yelp.com/v3/businesses/search?location=Seattle&term=coffee&radius=40000&sort_by=best_match&limit=0';
+async function fetchBatch(offset: number): Promise<Shop[]> {
+    const uri: string = `https://api.yelp.com/v3/businesses/search?location=Seattle&term=coffee&radius=40000&sort_by=best_match&limit=50&offset=${offset}`;
     const auth: string = `Bearer ${process.env.YELP_API_KEY}`;
 
     const resp = await fetch(uri, {
@@ -24,6 +24,11 @@ export default async function fetchCoffeeShops(): Promise<Shop[]> {
             'Authorization': auth,
         },
     });
+
+    // TODO: add some proper error handling
+    if (!resp.ok) {
+        return [] as Shop[];
+    }
 
     const respJSON = await resp.json();
     const shops: Shop[] = [];
@@ -38,8 +43,8 @@ export default async function fetchCoffeeShops(): Promise<Shop[]> {
             reviewCount: business['review_count'],
             rating: business['rating'],
             coordinates: {
-                latitude: business['coordinates']['latitude'],
                 longitude: business['coordinates']['longitude'],
+                latitude: business['coordinates']['latitude'],
             },
             displayAddress: business['location']['display_address'],
             phone: business['phone']
@@ -47,5 +52,17 @@ export default async function fetchCoffeeShops(): Promise<Shop[]> {
 
         shops.push(shop);
     });
+    return shops;
+}
+
+export default async function fetchCoffeeShops(): Promise<Shop[]> {
+    let offset = 0;
+    const shops = [] as Shop[];
+    while (offset <= 1000) {
+        const batch = await fetchBatch(offset);
+        offset += 50;
+        shops.push(...batch);
+    }
+
     return shops;
 }

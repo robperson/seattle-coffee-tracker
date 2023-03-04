@@ -2,6 +2,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 
 import fetchCoffeeShops from '@/services/yelp'
+import {insertShops} from '@/db'
 
 type Data = {
   message: string
@@ -15,9 +16,15 @@ export default async function handler(
 
   switch (method) {
     case 'POST':
-      // fetch shops from Yelp and refresh DB
-      await fetchCoffeeShops();
-      res.status(200).json({ message: 'Success!' });
+      try {
+        // fetch shops from Yelp and refresh DB
+        const shops = await fetchCoffeeShops();
+        await insertShops(shops);
+        res.status(200).json({ message: `Successfully added ${shops.length} shops!` });
+      } catch (error) {
+        res.status(500).json({ message: (error as Error).message })
+      }
+
       break
     default:
       res.setHeader('Allow', ['POST'])
