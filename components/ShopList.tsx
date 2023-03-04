@@ -53,7 +53,7 @@ const ShopList = () => {
       <Filters {...filters} setFilters={setFilters} />
       <ul>
         {data.shops.map(shop => (
-          <ShopListItem shop={shop}/>
+          <ShopListItem key={shop.id} shop={shop}/>
         ))}
       </ul>
     </div>

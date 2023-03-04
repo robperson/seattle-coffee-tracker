@@ -10,17 +10,12 @@ tried at their favorite spots, so you'll never have to guess where to go or what
 
 Copy .env into .env.local and replace the `YELP_API_KEY` with your key.
 
-### Run the development server
+Run the following commands to start the server:
 
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
+```
+npm install
+npx next build
+npx next start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
+You can now load the website at http://localhost:3000/
