@@ -1,13 +1,14 @@
+import { Shop } from '@/models/shops';
+import { Rating } from '@/models/ratings';
 import { Collection, Document, MongoClient } from 'mongodb';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import type { Shop } from '@/services/yelp';
 
 const shopsCollectionName = 'shops';
 const ratingsCollectionName = 'ratings';
 
 type Collections = {
     shops: Collection<Shop>
-    ratings: Collection<Document>
+    ratings: Collection<Rating>
 }
 
 let collections: Collections | undefined;
@@ -27,11 +28,13 @@ async function initdb() {
 
     // setup collections and indexes
     const shopsCollection = db.collection<Shop>(shopsCollectionName);
-    const ratingsCollection = db.collection(ratingsCollectionName);
+    const ratingsCollection = db.collection<Rating>(ratingsCollectionName);
 
     shopsCollection.createIndex({
         'coordinates': '2dsphere'
-    })
+    });
+
+    ratingsCollection.createIndex({'shopID': 1});
 
     collections = { shops: shopsCollection, ratings: ratingsCollection };
 
@@ -58,4 +61,26 @@ export async function getAllShops(): Promise<Shop[]> {
         }
     }
     return shops;
+}
+
+export async function insertRating(rating: Rating) {
+    await initdb();    
+    await collections?.ratings.insertOne(rating);
+    // TODO: handle error conditions on insert
+}
+
+export async function getRatingsForShop(shopID: string): Promise<Rating[]> {
+    await initdb();
+    const cursor = await collections?.ratings.find({
+        shopID: {'$eq': shopID},
+    });
+
+    const ratings = [] as Rating[];
+    while (await cursor?.hasNext()) {
+        const next = await cursor?.next();
+        if (next) {
+            ratings.push(next);
+        }
+    }
+    return ratings;
 }

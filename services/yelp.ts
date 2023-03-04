@@ -1,19 +1,5 @@
-export type Coordinates = {
-    longitude: number
-    latitude: number
-}
+import { Shop } from "@/models/shops";
 
-export type Shop = {
-    id: string
-    name: string
-    imageURL: string
-    URL: string
-    reviewCount: number
-    rating: number
-    coordinates: Coordinates
-    displayAddress: string[]
-    phone: string
-}
 
 async function fetchBatch(offset: number): Promise<Shop[]> {
     const uri: string = `https://api.yelp.com/v3/businesses/search?location=Seattle&term=coffee&radius=40000&sort_by=best_match&limit=50&offset=${offset}`;

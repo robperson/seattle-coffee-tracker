@@ -1,28 +1,29 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
 
-import { getAllShops } from '@/db'
-import { Shop } from '@/models/shops'
+import { getRatingsForShop } from '@/db'
+import { Rating } from '@/models/ratings'
 
-type Response = {
-    shops: Shop[]
+type GetResponse = {
+    ratings: Rating[]
     message: string
 }
 
 export default async function handler(
     req: NextApiRequest,
-    res: NextApiResponse<Response>
+    res: NextApiResponse<GetResponse>
 ) {
     const { method } = req
+    const { shopid } = req.query
 
     switch (method) {
         case 'GET':
             try {
-                // fetch shops from mongo
-                const shops = await getAllShops();
-                res.status(200).json({ shops: shops, message: 'Success!' });
+                // fetch shops from Yelp and refresh DB
+                const ratings = await getRatingsForShop(shopid as string);
+                res.status(200).json({ ratings: ratings, message: 'Success!' });
             } catch (error) {
-                res.status(500).json({ shops: [], message: (error as Error).message })
+                res.status(500).json({ ratings: [], message: (error as Error).message })
             }
 
             break
