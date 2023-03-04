@@ -1,6 +1,6 @@
 import { Shop } from '@/models/shops';
 import { Rating } from '@/models/ratings';
-import { Collection, Document, MongoClient } from 'mongodb';
+import { Collection, Document, FindCursor, MongoClient, WithId } from 'mongodb';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 
 const shopsCollectionName = 'shops';
@@ -49,10 +49,29 @@ export async function insertShops(shops: Shop[]) {
     // TODO: handle error conditions on insert
 }
 
-export async function getAllShops(): Promise<Shop[]> {
+export async function getAllShops(lat?: number, lng?: number, radius?: number, limit?: number): Promise<Shop[]> {
     await initdb();
-    const cursor = await collections?.shops.find({});
-
+    let cursor: FindCursor<WithId<Shop>> | undefined;
+    if (lat && lng && radius) {
+        cursor = await collections?.shops.find({
+            coordinates: {
+                '$near': {
+                    '$geometry': {
+                        'type': "Point" ,
+                        'coordinates': [ lng , lat ]
+                     },
+                     '$maxDistance': radius,
+                     '$minDistance': 5,
+                },
+            }
+        })
+    } else {
+        cursor = await collections?.shops.find({});
+    }
+    
+    if (limit) {
+        cursor?.limit(limit);
+    }
     const shops = [] as Shop[];
     while (await cursor?.hasNext()) {
         const next = await cursor?.next();

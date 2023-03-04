@@ -44,7 +44,7 @@ async function fetchBatch(offset: number): Promise<Shop[]> {
 export default async function fetchCoffeeShops(): Promise<Shop[]> {
     let offset = 0;
     const shops = [] as Shop[];
-    while (offset <= 1000) {
+    while (offset <= 200) {
         const batch = await fetchBatch(offset);
         offset += 50;
         shops.push(...batch);
